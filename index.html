@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#061013">
+  <meta name="description" content="动车组动力转向架交互式三维结构解剖：七大总成标注、单件拆解与作用详解。">
+  <title>转向架 · 交互式结构解剖</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="返回全车视图">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 44 44">
+            <circle cx="22" cy="22" r="13.5"></circle>
+            <circle cx="22" cy="22" r="4.2"></circle>
+            <path d="M22 8.5v9.3M22 26.2v9.3M8.5 22h9.3M26.2 22h9.3M12.4 12.4l6.6 6.6M25 25l6.6 6.6M31.6 12.4L25 19M19 25l-6.6 6.6"></path>
+          </svg>
+        </span>
+        <span class="brand-copy">
+          <span class="brand-title">转向架<span>·</span>结构解剖</span>
+          <span class="brand-sub">EMU BOGIE / INTERACTIVE ANATOMY</span>
+        </span>
+      </a>
+
+      <div class="topbar-center" aria-hidden="true">
+        <span class="topbar-rule"></span>
+        <span class="topbar-label">走行部 · 七大总成</span>
+        <span class="topbar-rule"></span>
+      </div>
+
+      <div class="topbar-actions">
+        <span class="live-status"><i></i><span>REAL-TIME 3D</span></span>
+        <button class="about-btn" id="aboutBtn" type="button">
+          <span>关于演示</span>
+          <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.2"/><path d="M8 7.2v4M8 4.7v.1"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <aside class="index-panel" aria-label="转向架部件索引">
+        <div class="panel-head">
+          <p class="eyebrow"><span></span>STRUCTURE INDEX</p>
+          <div class="panel-title-row">
+            <h2>七大总成</h2>
+            <span class="panel-count">07</span>
+          </div>
+          <p class="panel-lede">点击索引或模型上的编号，单独拆解并查看该部件的作用。</p>
+        </div>
+
+        <div class="parts-list" id="partsList" role="list">
+          <!-- populated by app.js -->
+        </div>
+
+        <div class="panel-map" aria-hidden="true">
+          <p class="block-label">LOAD PATH / 力流</p>
+          <div class="map-row"><b>车体</b><span>垂向载荷</span></div>
+          <div class="map-arrow">↓</div>
+          <div class="map-row"><b>二系 / 一系悬挂</b><span>两级隔振</span></div>
+          <div class="map-arrow">↓</div>
+          <div class="map-row"><b>轮对 / 钢轨</b><span>轮轨接触</span></div>
+        </div>
+
+        <div class="panel-foot">
+          <span class="foot-icon" aria-hidden="true">
+            <svg viewBox="0 0 20 20"><path d="M10 2.5v15M2.5 10h15M5.4 5.4l9.2 9.2M14.6 5.4l-9.2 9.2"/></svg>
+          </span>
+          <span>拖拽旋转 · 滚轮缩放<br>点击部件进入单件拆解</span>
+        </div>
+      </aside>
+
+      <section class="stage" id="stage" aria-label="转向架三维模型">
+        <canvas id="scene" aria-label="可交互的动车组转向架三维模型"></canvas>
+
+        <div class="stage-top">
+          <div class="view-state">
+            <span class="view-index" id="viewIndex">ASSEMBLY</span>
+            <span class="view-name" id="viewName">全车装配视图</span>
+          </div>
+
+          <div class="stage-tools">
+            <div class="segmented" id="modeSwitch" role="group" aria-label="视图模式">
+              <button class="is-active" type="button" data-mode="assembly">装配</button>
+              <button type="button" data-mode="explode">分解</button>
+            </div>
+            <div class="view-presets" role="group" aria-label="相机视角">
+              <button type="button" data-view="iso" title="等轴视图" aria-label="等轴视图">
+                <svg viewBox="0 0 20 20"><path d="M10 2.4l6.2 3.4v8.4L10 17.6l-6.2-3.4V5.8z"/><path d="M3.8 5.8L10 9.2l6.2-3.4M10 9.2v8.4"/></svg>
+              </button>
+              <button type="button" data-view="side" title="侧视图" aria-label="侧视图">
+                <svg viewBox="0 0 20 20"><rect x="3" y="5.5" width="14" height="9" rx="1.2"/><path d="M7 5.5v9M13 5.5v9"/></svg>
+              </button>
+              <button type="button" data-view="front" title="端视图" aria-label="端视图">
+                <svg viewBox="0 0 20 20"><rect x="5.5" y="3" width="9" height="14" rx="1.2"/><path d="M5.5 7h9M5.5 13h9"/></svg>
+              </button>
+              <button type="button" data-view="top" title="俯视图" aria-label="俯视图">
+                <svg viewBox="0 0 20 20"><rect x="3" y="4" width="14" height="12" rx="1.2"/><path d="M3 10h14M10 4v12"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout-layer" id="calloutLayer" aria-hidden="true">
+          <svg class="leader-layer" id="leaderLayer"></svg>
+          <!-- callout tags populated by app.js -->
+        </div>
+
+        <div class="stage-note" id="stageNote">
+          <span class="note-dot" aria-hidden="true"></span>
+          <span>拖拽旋转视角</span>
+          <span class="note-sep"></span>
+          <span>点击部件拆解</span>
+        </div>
+
+        <div class="mobile-parts" id="mobileParts" aria-label="部件快捷索引"></div>
+
+        <div class="stage-dock" role="group" aria-label="视图控制">
+          <button class="dock-btn" id="autoRotateBtn" type="button" aria-pressed="false" title="自动旋转">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M16.2 8.2A6.6 6.6 0 1 1 15 5.3"/><path d="M16.6 3.7v4.6h-4.5"/></svg>
+            <span>自转</span>
+          </button>
+          <span class="dock-divider" aria-hidden="true"></span>
+          <button class="dock-btn icon-only" id="zoomOutBtn" type="button" title="缩小" aria-label="缩小">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="M13 13l4 4M6.5 9h5"/></svg>
+          </button>
+          <button class="dock-btn icon-only" id="zoomInBtn" type="button" title="放大" aria-label="放大">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="M13 13l4 4M6.5 9h5M9 6.5v5"/></svg>
+          </button>
+          <span class="dock-divider" aria-hidden="true"></span>
+          <button class="dock-btn" id="resetBtn" type="button" title="复位视图">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 9.5a6 6 0 1 1 1.7 5.1"/><path d="M4 4.5v5h5"/></svg>
+            <span>复位</span>
+          </button>
+          <button class="dock-btn icon-only" id="fullscreenBtn" type="button" title="全屏" aria-label="全屏查看">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 3H3v4M13 3h4v4M7 17H3v-4M13 17h4v-4"/></svg>
+          </button>
+        </div>
+
+        <div class="axis-mark" aria-hidden="true">
+          <span class="axis axis-x">X</span>
+          <span class="axis axis-y">Y</span>
+          <span class="axis axis-z">Z</span>
+          <span class="axis-caption">LENGTH / WIDTH / HEIGHT</span>
+        </div>
+
+        <div class="loading-screen" id="loadingScreen" aria-live="polite">
+          <div class="loader-mark" aria-hidden="true">
+            <svg viewBox="0 0 64 64">
+              <circle class="loader-ring" cx="32" cy="32" r="25"></circle>
+              <circle class="loader-dash" cx="32" cy="32" r="25"></circle>
+              <circle cx="32" cy="32" r="7"></circle>
+              <path d="M32 7v16M32 41v16M7 32h16M41 32h16"></path>
+            </svg>
+          </div>
+          <p class="loader-kicker">ASSEMBLING THE BOGIE</p>
+          <h2>正在装配三维转向架</h2>
+          <div class="loader-bar"><span id="loaderBar"></span></div>
+          <p class="loader-progress"><span id="loaderPercent">0</span><small>%</small></p>
+        </div>
+
+        <div class="stage-error" id="stageError" hidden>
+          <h2>无法启动 3D 视图</h2>
+          <p>当前浏览器可能未启用 WebGL2。请使用最新版 Chrome、Edge 或 Safari，并检查硬件加速设置。</p>
+        </div>
+      </section>
+
+      <aside class="detail-panel" id="detailPanel" aria-label="部件详情">
+        <div class="detail-scroll" id="detailScroll" aria-live="polite">
+          <!-- populated by app.js -->
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <dialog class="about-dialog" id="aboutDialog" aria-labelledby="aboutTitle">
+    <div class="about-inner">
+      <button class="dialog-close" id="aboutClose" type="button" aria-label="关闭">
+        <svg viewBox="0 0 20 20"><path d="M4 4l12 12M16 4L4 16"/></svg>
+      </button>
+      <p class="eyebrow"><span></span>ABOUT THE MODEL</p>
+      <h2 id="aboutTitle">关于本演示</h2>
+      <p class="about-lede">一座可以在浏览器里拆开的动力转向架。</p>
+
+      <div class="about-grid">
+        <div>
+          <span class="about-no">01</span>
+          <h3>构型来源</h3>
+          <p>以所提供的车轮底盘三维扫描和三张转向架结构图为构型参考，按动车组动力转向架的七大总成重新组织为独立分件模型，并加入双电机架悬式空心轴驱动、横向/抗蛇行减振器、抗侧滚装置、横向止挡、牵引装置、高度调整阀与踏面清扫装置等细节。</p>
+        </div>
+        <div>
+          <span class="about-no">02</span>
+          <h3>交互方式</h3>
+          <p>拖拽旋转、滚轮缩放。点击模型或左侧索引，单独拆解一个总成；也可以在“分解”模式下查看全部总成的空间关系。</p>
+        </div>
+        <div>
+          <span class="about-no">03</span>
+          <h3>内容边界</h3>
+          <p>本页用于结构原理与教学演示，几何与参数经过简化，不作为工程设计、制造或检修依据。</p>
+        </div>
+        <div>
+          <span class="about-no">04</span>
+          <h3>技术实现</h3>
+          <p>原生 WebGL2 实时渲染，包含金属材质、方向光阴影、GPU 拾取与分件动画，无需外部依赖，可离线打开。</p>
+        </div>
+      </div>
+
+      <div class="about-foot">
+        <span>EMU BOGIE / 07 ASSEMBLIES</span>
+        <button class="btn-primary" id="aboutDone" type="button">进入模型 <span>→</span></button>
+      </div>
+    </div>
+  </dialog>
+
+  <noscript>
+    <div class="noscript">本页需要启用 JavaScript 才能显示三维转向架。</div>
+  </noscript>
+
+  <script src="js/glmath.js"></script>
+  <script src="js/mesh.js"></script>
+  <script src="js/bogie-model.js"></script>
+  <script src="js/bogie-engine.js"></script>
+  <script src="js/content.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
